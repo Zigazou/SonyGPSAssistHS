@@ -39,7 +39,7 @@ type Step a = Either String a
 type StepIO a = IO (Step a)
 
 {- |
-An step is a function which stops the program immediately in case of an
+A step is a function which stops the program immediately in case of an
 error. Running it prints a message and "OK" if everything went well. Otherwise
 it prints an error message and exit.
 
@@ -57,7 +57,7 @@ stepIO msg todo = do
          Right value   -> putStrLn "OK" >> return value
 
 {- |
-An step is a function which stops the program immediately in case of an
+A step is a function which stops the program immediately in case of an
 error. Running it prints a message and "OK" if everything went well. Otherwise
 it prints an error message and exit.
 
@@ -67,11 +67,7 @@ message.
 `step` is for pure functions.
 -}
 step :: String -> Step a -> IO a
-step msg result = do
-    putStr msg >> putStr "... " >> hFlush stdout
-    case result of
-         Left msgError -> putStrLn msgError >> exitFailure
-         Right value   -> putStrLn "OK" >> return value
+step msg = stepIO msg . return
 
 {- |
 Given a list of mount points, filter this list and keep only those which
@@ -84,7 +80,7 @@ sonyDirs dirs = filterM isItASonyDir dirs >>= filterM isWritable
         isWritable = liftM writable . getPermissions
 
 {- |
-An step which returns the list of mounted points which contains Sony
+A step which returns the list of mounted points which contains Sony
 directory structures which are writables.
 -}
 getSonyMounts :: StepIO [FilePath]
@@ -110,19 +106,19 @@ httpGet get url = do
         code   -> Left ("Cannot download " ++ url ++ " (" ++ show code ++ ")")
 
 {- |
-An step using Curl to retrieve a `String` given an URL.
+A step using Curl to retrieve a `String` given an URL.
 -}
 httpGetString :: URLString -> StepIO String
 httpGetString = httpGet curlGetString
 
 {- |
-An step using Curl to retrieve a `ByteString` given an URL.
+A step using Curl to retrieve a `ByteString` given an URL.
 -}
 httpGetBin :: URLString -> StepIO B.ByteString
 httpGetBin = httpGet curlGetString_
 
 {- |
-An step which calculates the MD5 of a `ByteString` and compares it to
+A step which calculates the MD5 of a `ByteString` and compares it to
 another. The MD5 must be given in an hexadecimal string.
 -}
 verifyMD5 :: B.ByteString -> String -> Step ()
@@ -132,7 +128,7 @@ verifyMD5 bdata wanted
     where calculated = show $ md5 bdata
 
 {- |
-An step which writes a `ByteString` containing GPS data in a dedicated file
+A step which writes a `ByteString` containing GPS data in a dedicated file
 residing on a device of which the mount point is given in a `FilePath`.
 -}
 writeGPS :: FilePath -> B.ByteString -> StepIO ()
